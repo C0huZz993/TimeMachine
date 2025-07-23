@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Машина Времени</title>
+    <!-- Подключаем Tailwind CSS CDN для базовых стилей и адаптивности -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключаем шрифты Inter, Orbitron и Share Tech Mono для футуристичного дисплея -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* Общие стили для body и фона */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); /* Gradient background */
+            color: #e2e8f0; /* Light text */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Minimum height to fill the screen */
+            margin: 0;
+            position: relative;
+            padding: 0.5rem; /* Reduced padding for compactness */
+            overflow: hidden; /* Prevent any scrolling */
+        }
+
+        /* Effect of wires/circuits in the background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Using placeholder.co for circuit image with new text */
+            background-image: url('https://placehold.co/1000x1000/1a202c/667eea?text=VON%20DOOM%20CORP.');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.1; /* Semi-transparent */
+            z-index: -1;
+            animation: backgroundPulse 15s infinite alternate; /* Background pulse animation */
+        }
+
+        @keyframes backgroundPulse {
+            0% { opacity: 0.1; transform: scale(1); }
+            100% { opacity: 0.15; transform: scale(1.05); }
+        }
+
+        /* Style for the electronic display */
+        .display-screen {
+            font-family: 'Share Tech Mono', monospace; /* Monospaced font for digital look */
+            background-color: #0d1117; /* Dark display background */
+            border: 2px solid #4a5568; /* Border */
+            /* Changed glow colors to blue-cyan */
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.7), inset 0 0 10px rgba(0, 191, 255, 0.5);
+            color: #00bfff; /* Bright cyan text */
+            padding: 0.8rem; /* Reduced padding */
+            border-radius: 1rem; /* Rounded corners */
+            text-align: center;
+            font-size: clamp(1rem, 3.5vw, 1.8rem); /* Adaptive font size */
+            letter-spacing: 0.1em; /* Letter spacing */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease-in-out; /* Smooth transition */
+        }
+
+        /* Style for the "TRAVEL" button */
+        .travel-button {
+            background: linear-gradient(45deg, #667eea, #764ba2); /* Button gradient */
+            color: white;
+            padding: 0.5rem 1rem; /* Reduced padding */
+            border-radius: 9999px; /* Fully rounded button */
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem; /* Reduced font-size */
+        }
+
+        .travel-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .travel-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Style for the date and time input field */
+        input[type="text"]#travelDateTimeInput {
+            background-color: #1a202c;
+            border: 2px solid #4a5568;
+            color: #e2e8f0;
+            padding: 0.5rem 0.7rem; /* Reduced padding */
+            border-radius: 0.75rem;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem; /* Reduced font-size */
+            /* Changed glow colors to blue-cyan */
+            box-shadow: inset 0 0 8px rgba(0, 191, 255, 0.3);
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+            text-align: center; /* Center text inside the field */
+        }
+
+        input[type="text"]#travelDateTimeInput:focus {
+            outline: none;
+            border-color: #667eea;
+            /* Changed glow colors to blue-cyan */
+            box-shadow: inset 0 0 12px rgba(0, 191, 255, 0.5), 0 0 5px rgba(102, 126, 234, 0.7);
+        }
+
+        /* Style for the era toggle button */
+        .era-toggle {
+            background-color: #21262d; /* Dark background */
+            border: 1px solid #444c56;
+            border-radius: 8px;
+            padding: 0.5rem 0.8rem; /* Reduced padding */
+            font-size: 0.9rem; /* Reduced font-size */
+            color: #667eea; /* Text color matching the new design */
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .era-toggle:hover {
+            background-color: #667eea;
+            color: #1a202c; /* Dark text on hover */
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .era-toggle:active {
+            transform: translateY(0);
+        }
+
+        /* Style for the "BACK" button */
+        .back-button {
+            background-color: #ef4444; /* Red background */
+            color: white;
+            padding: 0.4rem 0.8rem; /* Reduced padding */
+            border-radius: 9999px; /* Fully rounded button */
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem; /* Reduced font-size */
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.6);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Styles for error/success messages */
+        .message-box {
+            background-color: #1a202c; /* Background like the modal */
+            border: 2px solid #667eea; /* Border like the modal */
+            border-radius: 1rem;
+            padding: 1rem; /* Reduced padding */
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
+            text-align: center;
+            font-size: 0.9rem; /* Reduced font-size */
+            color: #e2e8f0;
+            display: none; /* Hidden by default */
+            position: fixed; /* Positioning relative to the viewport */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 80%;
+            max-width: 350px; /* Reduced max-width */
+        }
+
+        /* Main time machine container */
+        .time-machine-container {
+            background-color: rgba(26, 32, 44, 0.7); /* Dark transparent background */
+            backdrop-filter: blur(8px); /* Background blur effect */
+            padding: 2rem; /* Reduced padding */
+            border-radius: 1.5rem; /* Rounded corners */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Shadow */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Reduced gap */
+            align-items: center;
+            max-width: 500px; /* Reduced max-width */
+            width: 90%; /* Adaptive width */
+            border: 2px solid #667eea; /* Border color */
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Style for the model text at the bottom */
+        .model-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            color: #4a5568; /* Subtle grey color */
+            margin-top: 1rem; /* Space above the text */
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Responsiveness for mobile devices (additional optimizations) */
+        @media (max-width: 768px) {
+            .time-machine-container {
+                padding: 1rem;
+                gap: 1rem;
+            }
+            .display-screen {
+                padding: 0.6rem;
+                font-size: clamp(0.8rem, 3vw, 1.5rem);
+            }
+            .display-screen p:first-child {
+                font-size: 0.7rem;
+            }
+            .travel-button, .back-button {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            input[type="text"]#travelDateTimeInput {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+            }
+            .era-toggle {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.7rem;
+            }
+            .message-box {
+                padding: 0.8rem;
+                font-size: 0.8rem;
+                max-width: 280px;
+            }
+            .model-text {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center">
+
+    <!-- Header for the Time Machine -->
+    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-white text-shadow-lg">
+        <span class="text-red-500">М</span>АШИНА <span class="text-green-500">В</span>РЕМЕНИ
+    </h1>
+
+    <!-- Main time machine container -->
+    <div class="time-machine-container">
+
+        <!-- Current date and time display screen -->
+        <div class="display-screen w-full">
+            <p class="text-lg sm:text-xl text-gray-400 mb-1">ТЕКУЩАЯ ДАТА И ВРЕМЯ</p>
+            <p id="currentTimeDisplay" class="text-2xl sm:text-3xl md:text-4xl font-bold"></p>
+        </div>
+
+        <!-- Separator with wires (circles removed) -->
+        <div class="w-full h-1 bg-gradient-to-r from-purple-500 via-blue-400 to-blue-500 rounded-full my-2 relative">
+            <!-- Circles removed as per user request -->
+        </div>
+
+        <!-- Date input screen -->
+        <div class="display-screen w-full flex flex-col items-center space-y-3">
+            <p class="text-lg sm:text-xl text-gray-400">ВЫБЕРИТЕ ДАТУ ПУТЕШЕСТВИЯ</p>
+            <input type="text" id="travelDateTimeInput" placeholder="ДД.ММ.ГГГГ ЧЧ:ММ" class="w-full max-w-xs">
+            <button id="eraToggle" class="era-toggle">Н.Э.</button>
+            <div class="flex space-x-4 mt-4"> <!-- Container for "TRAVEL" and "BACK" buttons -->
+                <button id="travelButton" class="travel-button">
+                    ПУТЕШЕСТВОВАТЬ
+                </button>
+                <button id="backButton" class="back-button">
+                    НАЗАД
+                </button>
+            </div>
+        </div>
+
+        <!-- Model text at the bottom -->
+        <p class="model-text">TIMEMACHINE-V1-VON-DOOM-CORP.</p>
+    </div>
+
+    <!-- Message box -->
+    <div id="messageBox" class="message-box">
+        <p id="modal-message" class="text-lg text-white"></p>
+    </div>
+
+    <!-- Аудио элементы для звуков -->
+    <audio id="travelSound" src="D:\Веб-Сайт\TravelTime.m4a" preload="auto"></audio>
+    <audio id="backSound" src="D:\Веб-Сайт\TravelBack.m4a" preload="auto"></audio>
+
+    <script>
+        // Get DOM elements
+        const currentTimeDisplay = document.getElementById('currentTimeDisplay');
+        const travelDateTimeInput = document.getElementById('travelDateTimeInput');
+        const eraToggle = document.getElementById('eraToggle');
+        const travelButton = document.getElementById('travelButton');
+        const backButton = document.getElementById('backButton');
+        const messageBox = document.getElementById('messageBox');
+        const modalMessage = document.getElementById('modal-message');
+
+        // Аудио элементы
+        const travelSound = document.getElementById('travelSound');
+        const backSound = document.getElementById('backSound');
+
+        let isAD = true; // Flag for AD (true) or BC (false) for input
+        let currentDisplayMode = 'system'; // 'system' or 'travel'
+        let traveledDate = null; // Will store an object with date components for "travel"
+
+        // Function to format a number with a leading zero
+        function formatTwoDigits(num) {
+            return num < 10 ? '0' + num : num;
+        }
+
+        // Function to show messages to the user
+        function showMessage(message, type = 'error') {
+            modalMessage.textContent = message;
+            if (type === 'error') {
+                messageBox.style.borderColor = '#ff6347'; /* Red for errors */
+                messageBox.style.boxShadow = '0 0 15px rgba(255, 69, 0, 0.6)';
+            } else {
+                messageBox.style.borderColor = '#667eea'; /* Blue for success */
+                messageBox.style.boxShadow = '0 0 15px rgba(102, 126, 234, 0.6)';
+            }
+            messageBox.style.display = 'flex';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 3000);
+        }
+
+        // Function to check for a leap year
+        function isLeapYear(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        // Function to validate date (day, month, year)
+        function isValidDate(day, month, year) {
+            if (month < 1 || month > 12) return false;
+            if (day < 1) return false;
+
+            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            let actualDaysInMonth = daysInMonth[month - 1];
+
+            if (month === 2 && isLeapYear(year)) {
+                actualDaysInMonth = 29;
+            }
+
+            return day <= actualDaysInMonth;
+        }
+
+        // Function to update the displayed time
+        function updateDisplayTime() {
+            let displayDate;
+            let displayYearValue;
+            let eraSuffix = '';
+
+            if (currentDisplayMode === 'system') {
+                displayDate = new Date();
+                displayYearValue = displayDate.getFullYear();
+                eraSuffix = ' Н.Э.';
+            } else { // 'travel' mode
+                if (!traveledDate) {
+                    displayDate = new Date(); // Fallback
+                    displayYearValue = displayDate.getFullYear();
+                    eraSuffix = ' Н.Э.';
+                } else {
+                    // Manually increment seconds for the traveledDate object
+                    traveledDate.second = (traveledDate.second + 1) % 60;
+                    if (traveledDate.second === 0) {
+                        traveledDate.minute = (traveledDate.minute + 1) % 60;
+                        if (traveledDate.minute === 0) {
+                            traveledDate.hour = (traveledDate.hour + 1) % 24;
+                            // More complex logic for days/months/years is not needed here,
+                            // as we are just counting seconds from a given point.
+                        }
+                    }
+
+                    // Create a temporary Date object for correct formatting
+                    // Use Math.abs(traveledDate.year) for Date object creation if year is BC,
+                    // as JS Date objects do not handle negative years well.
+                    const yearForDateObject = traveledDate.year < 0 ? Math.abs(traveledDate.year) : traveledDate.year;
+
+                    displayDate = new Date(yearForDateObject, traveledDate.month, traveledDate.day,
+                                           traveledDate.hour, traveledDate.minute, traveledDate.second);
+
+                    displayYearValue = Math.abs(traveledDate.year); // Use the stored year value for display
+                    if (!traveledDate.isAD) {
+                        eraSuffix = ' До н.э.';
+                        // Adjustment for astronomical year numbering if it's BC
+                        if (traveledDate.year <= 0) {
+                            displayYearValue = Math.abs(traveledDate.year) + (traveledDate.year === 0 ? 1 : 0);
+                        }
+                    } else {
+                        eraSuffix = ' Н.Э.';
+                    }
+                }
+            }
+
+            const day = formatTwoDigits(displayDate.getDate());
+            const month = formatTwoDigits(displayDate.getMonth() + 1);
+            const hours = formatTwoDigits(displayDate.getHours());
+            const minutes = formatTwoDigits(displayDate.getMinutes());
+            const seconds = formatTwoDigits(displayDate.getSeconds());
+
+            currentTimeDisplay.textContent = `${day}.${month}.${displayYearValue}${eraSuffix} ${hours}:${minutes}:${seconds}`;
+        }
+
+        // Initialize time update
+        setInterval(updateDisplayTime, 1000);
+        updateDisplayTime(); // Call once immediately
+
+        // Event handler for era toggle button
+        eraToggle.addEventListener('click', () => {
+            isAD = !isAD;
+            eraToggle.textContent = isAD ? 'Н.Э.' : 'До н.э.';
+            // Important: here we only change the button text and the internal isAD flag.
+            // The display on the main screen will only change after "TRAVEL" is clicked.
+        });
+
+        // Event handler for "TRAVEL" button
+        travelButton.addEventListener('click', () => {
+            const dateTimeString = travelDateTimeInput.value.trim();
+            const dateTimeRegex = /^(\d{2})\.(\d{2})\.(\d{4})\s(\d{2}):(\d{2})$/;
+            const match = dateTimeString.match(dateTimeRegex);
+
+            if (!match) {
+                showMessage('Пожалуйста, введите дату и время в формате ДД.ММ.ГГГГ ЧЧ:ММ.');
+                return;
+            }
+
+            const day = parseInt(match[1]);
+            const month = parseInt(match[2]);
+            let year = parseInt(match[3]);
+            const hour = parseInt(match[4]);
+            const minute = parseInt(match[5]);
+
+            // Validate numeric ranges
+            if (day < 1 || day > 31 || month < 1 || month > 12 || year < -9999 || year > 9999 ||
+                hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+                showMessage('Некорректные значения даты или времени. Проверьте диапазоны.');
+                return;
+            }
+
+            // Validate date (days in month, leap year)
+            if (!isValidDate(day, month, year)) {
+                showMessage('Некорректная дата. Проверьте день и месяц.');
+                return;
+            }
+
+            // Play travel sound
+            travelSound.currentTime = 0; // Перемотка на начало (если звук уже играл)
+            travelSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
+
+            // Store the intended year (positive for AD, negative for BC)
+            let storedYear = year;
+            if (!isAD) {
+                storedYear = -Math.abs(year); // Store as negative for BC
+            }
+
+            // Create a custom object to store the intended date and era choice
+            traveledDate = {
+                year: storedYear, // This will be the original year input, potentially negative for BC
+                month: month - 1, // JS Date month index (0-11)
+                day: day,
+                hour: hour,
+                minute: minute,
+                second: 0, // Start seconds at 00
+                isAD: isAD // Store the era choice for consistent display
+            };
+
+            currentDisplayMode = 'travel'; // Switch display mode to "travel"
+
+            // Add class to trigger animation
+            currentTimeDisplay.classList.add('traveling');
+
+            // Update display immediately
+            updateDisplayTime();
+
+            // Remove animation class after it completes
+            currentTimeDisplay.addEventListener('animationend', () => {
+                currentTimeDisplay.classList.remove('traveling');
+            }, { once: true });
+
+            showMessage(`Вы успешно переместились!`, 'success');
+        });
+
+        // Event handler for "BACK" button
+        backButton.addEventListener('click', () => {
+            currentDisplayMode = 'system'; // Switch display mode to system time
+            updateDisplayTime(); // Update display
+
+            // Play back sound
+            backSound.currentTime = 0; // Перемотка на начало (если звук уже играл)
+            backSound.play().catch(e => console.error("Ошибка воспроизведения звука:", e));
+
+            showMessage('Возвращение в настоящее время.', 'success');
+        });
+
+        // Add input handler for automatic formatting
+        travelDateTimeInput.addEventListener('input', (e) => {
+            let value = e.target.value;
+            // Remove all non-digit characters
+            const digitsOnly = value.replace(/[^0-9]/g, '');
+            let formattedValue = '';
+
+            // Format string as digits are entered
+            if (digitsOnly.length > 0) {
+                formattedValue += digitsOnly.substring(0, 2); // DD
+            }
+            if (digitsOnly.length > 2) {
+                formattedValue += '.' + digitsOnly.substring(2, 4); // .MM
+            }
+            if (digitsOnly.length > 4) {
+                formattedValue += '.' + digitsOnly.substring(4, 8); // .YYYY
+            }
+            if (digitsOnly.length > 8) {
+                formattedValue += ' ' + digitsOnly.substring(8, 10); // HH
+            }
+            if (digitsOnly.length > 10) {
+                formattedValue += ':' + digitsOnly.substring(10, 12); // :MM
+            }
+
+            e.target.value = formattedValue;
+        });
+
+        // Limit maximum input length
+        travelDateTimeInput.setAttribute('maxlength', '16'); // DD.MM.YYYY HH:MM (16 characters)
+
+    </script>
+</body>
+</html>
